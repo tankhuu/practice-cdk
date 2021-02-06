@@ -8,7 +8,6 @@ export class PracticeCdkStack extends cdk.Stack {
     const esDomain = new es.Domain(this, 'Domain', {
       version: es.ElasticsearchVersion.V7_9,
       capacity: {
-        masterNodes: 1,
         dataNodes: 1,
         dataNodeInstanceType: 't3.small.elasticsearch'
       },
@@ -21,6 +20,11 @@ export class PracticeCdkStack extends cdk.Stack {
         slowIndexLogEnabled: true,
       }
     });
-    // The code that defines your stack goes here
+
+    // Outputs
+    new cdk.CfnOutput(this, 'ESDomainOutput', {
+      value: esDomain.domainName,
+      exportName: 'ESDomainName'
+    })
   }
 }
