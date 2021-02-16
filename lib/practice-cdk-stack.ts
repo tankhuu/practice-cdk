@@ -1,13 +1,14 @@
 import * as cdk from '@aws-cdk/core';
 import * as lambda from '@aws-cdk/aws-lambda-nodejs';
+import * as path from 'path'
 import { Bucket } from '@aws-cdk/aws-s3';
 import { CfnOutput, Duration } from '@aws-cdk/core';
-import * as path from 'path'
-import {Runtime} from '@aws-cdk/aws-lambda'
+import { Runtime } from '@aws-cdk/aws-lambda'
 import { BucketDeployment, Source } from '@aws-cdk/aws-s3-deployment';
 import { PolicyStatement } from '@aws-cdk/aws-iam';
 import { HttpApi, HttpMethod } from '@aws-cdk/aws-apigatewayv2';
 import { LambdaProxyIntegration } from '@aws-cdk/aws-apigatewayv2-integrations';
+import { CloudFrontWebDistribution } from '@aws-cdk/aws-cloudfront';
 
 export class PracticeCdkStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -33,11 +34,25 @@ export class PracticeCdkStack extends cdk.Stack {
       publicReadAccess: true
     })
 
+    const frontendCloudFront = new CloudFrontWebDistribution(this, 'ReactAppWebCFDistribution', {
+      originConfigs: [
+        {
+          s3OriginSource: {
+            s3BucketSource: frontendBucket
+          },
+          behaviors: [
+            {isDefaultBehavior: true}
+          ]
+        }
+      ]
+    })
+
     new BucketDeployment(this, 'ReactAppWebDeploy', {
       sources: [
         Source.asset(path.join(__dirname, '..', 'frontend', 'build'))
       ],
-      destinationBucket: frontendBucket
+      destinationBucket: frontendBucket,
+      distribution: frontendCloudFront
     })
 
     const bucketContainersPermissions = new PolicyStatement()
@@ -83,9 +98,18 @@ export class PracticeCdkStack extends cdk.Stack {
       exportName: 'PracticeCDKBucketName',
       value: bucket.bucketName
     })
+
     new CfnOutput(this, 'FrontendBucketNameExport', {
       exportName: 'FrontendBucketName',
       value: frontendBucket.bucketName
+    })
+    new CfnOutput(this, 'FrontendCFDistributionIdExport', {
+      exportName: 'FrontendCFDistributionId',
+      value: frontendCloudFront.distributionId
+    })
+    new CfnOutput(this, 'FrontendCFDistributionDomainNameExport', {
+      exportName: 'FrontendCFDistributionURL',
+      value: `https://${frontendCloudFront.distributionDomainName}`
     })
 
     new CfnOutput(this, 'photosApi', {
