@@ -11,26 +11,29 @@
     "cdk": "cdk"
   },
   "devDependencies": {
-    "@aws-cdk/assert": "1.74.0",
+    "@aws-cdk/assert": "^1.89.0",
     "@types/jest": "^26.0.10",
-    "@types/node": "10.17.27",
+    "@types/node": "^14.14.28",
+    "aws-cdk": "^1.89.0",
     "jest": "^26.4.2",
-    "ts-jest": "^26.2.0",
-    "aws-cdk": "1.74.0",
-    "ts-node": "^8.1.0",
-    "typescript": "~3.9.7"
+    "ts-jest": "^26.5.1",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.1.5"
   },
   "dependencies": {
-    "@aws-cdk/aws-apigatewayv2": "^1.74.0",
-    "@aws-cdk/aws-apigatewayv2-integrations": "^1.74.0",
-    "@aws-cdk/aws-cloudfront": "^1.74.0",
-    "@aws-cdk/aws-cloudfront-origins": "^1.74.0",
-    "@aws-cdk/aws-iam": "^1.74.0",
-    "@aws-cdk/aws-lambda": "1.74.0",
-    "@aws-cdk/aws-lambda-nodejs": "1.74.0",
-    "@aws-cdk/aws-s3": "1.74.0",
-    "@aws-cdk/aws-s3-deployment": "^1.74.0",
-    "@aws-cdk/core": "1.74.0",
-    "source-map-support": "0.5.16"
+    "@aws-cdk/aws-apigatewayv2": "^1.89.0",
+    "@aws-cdk/aws-apigatewayv2-integrations": "^1.89.0",
+    "@aws-cdk/aws-certificatemanager": "^1.89.0",
+    "@aws-cdk/aws-cloudfront": "^1.89.0",
+    "@aws-cdk/aws-cloudfront-origins": "^1.89.0",
+    "@aws-cdk/aws-iam": "^1.89.0",
+    "@aws-cdk/aws-lambda": "^1.89.0",
+    "@aws-cdk/aws-lambda-nodejs": "^1.89.0",
+    "@aws-cdk/aws-route53": "^1.89.0",
+    "@aws-cdk/aws-route53-targets": "^1.89.0",
+    "@aws-cdk/aws-s3": "^1.89.0",
+    "@aws-cdk/aws-s3-deployment": "^1.89.0",
+    "@aws-cdk/core": "^1.89.0",
+    "source-map-support": "^0.5.16"
   }
 }
