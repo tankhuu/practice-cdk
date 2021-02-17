@@ -8,17 +8,28 @@ import { BucketDeployment, Source } from '@aws-cdk/aws-s3-deployment';
 import { PolicyStatement } from '@aws-cdk/aws-iam';
 import { HttpApi, HttpMethod } from '@aws-cdk/aws-apigatewayv2';
 import { LambdaProxyIntegration } from '@aws-cdk/aws-apigatewayv2-integrations';
-import { CloudFrontWebDistribution } from '@aws-cdk/aws-cloudfront';
+import { CloudFrontWebDistribution, Distribution } from '@aws-cdk/aws-cloudfront';
+import { ARecord, IPublicHostedZone, RecordTarget } from '@aws-cdk/aws-route53';
+import { ICertificate } from '@aws-cdk/aws-certificatemanager';
+import { S3Origin } from '@aws-cdk/aws-cloudfront-origins';
+import { CloudFrontTarget } from '@aws-cdk/aws-route53-targets';
+
+interface PracticeCdkStackProps extends cdk.StackProps {
+  envName: string,
+  hostedZone: IPublicHostedZone,
+  certificate: ICertificate,
+  dnsName: string
+}
 
 export class PracticeCdkStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: cdk.Construct, id: string, props: PracticeCdkStackProps) {
     super(scope, id, props);
 
     const bucket = new Bucket(this, 'practiceCdkBucket', {
       bucketName: 'practice-cdk',
       lifecycleRules: [{
         enabled: true,
-        expiration: Duration.days(3)
+        expiration: props?.envName === 'prod' ? Duration.days(7) : Duration.days(3)
       }]
     })
 
@@ -34,17 +45,15 @@ export class PracticeCdkStack extends cdk.Stack {
       publicReadAccess: true
     })
 
-    const frontendCloudFront = new CloudFrontWebDistribution(this, 'ReactAppWebCFDistribution', {
-      originConfigs: [
-        {
-          s3OriginSource: {
-            s3BucketSource: frontendBucket
-          },
-          behaviors: [
-            {isDefaultBehavior: true}
-          ]
-        }
-      ]
+    const frontendCloudFront = new Distribution(this, 'ReactAppWebCFDistribution', {
+      defaultBehavior: { origin: new S3Origin(frontendBucket) },
+      domainNames: [props?.dnsName],
+      certificate: props.certificate
+    })
+
+    new ARecord(this, 'ReactAppWebARecord', {
+      zone: props.hostedZone,
+      target: RecordTarget.fromAlias(new CloudFrontTarget(frontendCloudFront))
     })
 
     new BucketDeployment(this, 'ReactAppWebDeploy', {
@@ -95,25 +104,25 @@ export class PracticeCdkStack extends cdk.Stack {
     })
 
     new CfnOutput(this, 'PracticeCDKBucketNameExport', {
-      exportName: 'PracticeCDKBucketName',
+      exportName: `PracticeCDKBucketName${props?.envName}`,
       value: bucket.bucketName
     })
 
     new CfnOutput(this, 'FrontendBucketNameExport', {
-      exportName: 'FrontendBucketName',
+      exportName: `FrontendBucketName${props?.envName}`,
       value: frontendBucket.bucketName
     })
     new CfnOutput(this, 'FrontendCFDistributionIdExport', {
-      exportName: 'FrontendCFDistributionId',
+      exportName: `FrontendCFDistributionId${props?.envName}`,
       value: frontendCloudFront.distributionId
     })
     new CfnOutput(this, 'FrontendCFDistributionDomainNameExport', {
-      exportName: 'FrontendCFDistributionURL',
+      exportName: `FrontendCFDistributionURL${props?.envName}`,
       value: `https://${frontendCloudFront.distributionDomainName}`
     })
 
     new CfnOutput(this, 'photosApi', {
-      exportName: 'PhotosApiEndpoint',
+      exportName: `PhotosApiEndpoint${props?.envName}`,
       value: httpApi.url!
     })
   }
